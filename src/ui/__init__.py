@@ -10,8 +10,62 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+class threadstuff(QtCore.QThread):
+    recvData = QtCore.pyqtSignal(str)
+    updateUI = QtCore.pyqtSignal(str, str, str, str ,str ,str, int)
+
+    def __init__(self):
+        QtCore.QThread.__init__(self)
+    
+    def emitDataSig(self, dat):
+        self.recvData.emit(dat)
+    def emitUpdateSig(self, name, peers, upl, dwn, save, stat, prog):
+        self.updateUI(name, peers, upl, dwn, save, stat, prog)
 
 class Ui_MainWindow(object):
+    def updateProgBar(self, perc):
+        self.progBar.setValue(perc)
+
+    def clearLabels(self):
+        self.updateProgBar(0)
+        self.nameLbl.setText("Torrent Name: None")
+        self.peerLbl.setText("Peer Count: None")
+        self.uplLbl.setText("Upload Speed: None")
+        self.dwnLbl.setText("Download Speed: None")
+        self.saveLbl.setText("Save Path: None")
+        self.statLbl.setText("Status: None")
+
+    def updateLabels(self, name, peers, upl, dwn, save, status, prog):
+        self.updateProgBar(prog)
+        self.nameLbl.setText(f"Torrent Name: {name}")
+        self.peerLbl.setText(f"Peer Count: {peers}")
+        self.uplLbl.setText(f"Upload Speed: {upl}")
+        self.dwnLbl.setText(f"Download Speed: {dwn}")
+        self.saveLbl.setText(f"Save Path: {save}")
+        self.statLbl.setText(f"Status: {status}")
+
+    def promptTorrentFile(self):
+        options = QtWidgets.QFileDialog.Options()
+        torfile = QtWidgets.QFileDialog.getOpenFileName(self.centralwidget, "Torrent Data File", "", ".torrent File (*.torrent)" , options=options)
+        return torfile
+
+    def promptDownloadDirectory(self):
+        options = QtWidgets.QFileDialog.Options()
+        path = QtWidgets.QFileDialog.getExistingDirectory(self.centralwidget, "Torrent Save Path", "", options=options)
+        return path
+
+    def alertDialog(self, title, msg):
+        title = "PeerTorrent - " + title
+        dialog = QtWidgets.QMessageBox(self.centralwidget)
+        dialog.setWindowTitle(title)
+        dialog.setText(msg)
+        dialog.exec()
+
+    def promptMagnetLink(self):
+        mag, ok = QtWidgets.QInputDialog.getText(self.centralwidget, "Input Magnet Link", "Magnet URL:", QtWidgets.QLineEdit.Normal, "")
+        if ok and mag != '':
+            return mag
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("PeerTorrent")
         MainWindow.setFixedSize(939, 643)
@@ -20,6 +74,9 @@ class Ui_MainWindow(object):
         MainWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
+        
+        self.recvClass = threadstuff()
+
         self.chatFrame = QtWidgets.QFrame(self.centralwidget)
         self.chatFrame.setGeometry(QtCore.QRect(10, 10, 401, 551))
         self.chatFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
@@ -31,10 +88,22 @@ class Ui_MainWindow(object):
         self.sendMsg = QtWidgets.QPushButton(self.chatFrame)
         self.sendMsg.setGeometry(QtCore.QRect(300, 500, 91, 41))
         self.sendMsg.setObjectName("sendMsg")
+        self.sendMsg.setAutoDefault(True)
+        self.inputMsg.returnPressed.connect(self.sendMsg.click)
         self.areaMsg = QtWidgets.QTextEdit(self.chatFrame)
         self.areaMsg.setGeometry(QtCore.QRect(10, 60, 381, 431))
         self.areaMsg.setReadOnly(True)
         self.areaMsg.setObjectName("areaMsg")
+        self.areaMsg.setText("")
+
+        # Set scrollbar to the bottom
+        def receiveFunc(msg):
+            self.areaMsg.setText(msg)
+            self.areaMsg.verticalScrollBar().setSliderPosition(self.areaMsg.verticalScrollBar().maximum())
+
+        self.recvClass.recvData.connect(receiveFunc)
+        self.recvClass.updateUI.connect(self.updateLabels)
+
         self.headMsg = QtWidgets.QLabel(self.chatFrame)
         self.headMsg.setGeometry(QtCore.QRect(20, 10, 371, 41))
         self.headMsg.setAlignment(QtCore.Qt.AlignCenter)
@@ -100,21 +169,14 @@ class Ui_MainWindow(object):
         icon3.addPixmap(QtGui.QPixmap("feather_icons/x-octagon.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionStop_Torrent.setIcon(icon3)
         self.actionStop_Torrent.setObjectName("actionStop_Torrent")
-        self.actionStop_Delete_Torrent = QtWidgets.QAction(MainWindow)
-        icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap("feather_icons/trash-2.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.actionStop_Delete_Torrent.setIcon(icon4)
-        self.actionStop_Delete_Torrent.setObjectName("actionStop_Delete_Torrent")
         self.menuFile.addAction(self.magnetBtn)
         self.menuFile.addAction(self.torrentBtn)
         self.menuFile.addAction(self.actionStop_Torrent)
-        self.menuFile.addAction(self.actionStop_Delete_Torrent)
         self.menubar.addAction(self.menuFile.menuAction())
         self.toolBar.addAction(self.magnetBtn)
         self.toolBar.addAction(self.torrentBtn)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionStop_Torrent)
-        self.toolBar.addAction(self.actionStop_Delete_Torrent)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -125,9 +187,9 @@ class Ui_MainWindow(object):
         self.inputMsg.setPlaceholderText(_translate("MainWindow", "Send a global message."))
         self.sendMsg.setText(_translate("MainWindow", "Send"))
         self.headMsg.setText(_translate("MainWindow", "Chat\n"
-"Please act civil and respectful in the discussions!"))
+        "Please act civil and respectful in the discussions!"))
         self.headLbl.setText(_translate("MainWindow", "PeerTorrent only works single-threaded\n"
-"meaning it will download only one torrent at a time."))
+        "meaning it will download only one torrent at a time."))
         self.progLbl.setText(_translate("MainWindow", "Progress:"))
         self.nameLbl.setText(_translate("MainWindow", "Torrent Name: None"))
         self.peerLbl.setText(_translate("MainWindow", "Peer Count: None"))
@@ -139,9 +201,7 @@ class Ui_MainWindow(object):
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar"))
         self.magnetBtn.setText(_translate("MainWindow", "Add Torrent Magnet"))
         self.torrentBtn.setText(_translate("MainWindow", "Add Torrent File"))
-        self.actionStop_Torrent.setText(_translate("MainWindow", "Stop Torrent (No Delete)"))
-        self.actionStop_Delete_Torrent.setText(_translate("MainWindow", "Stop and Delete Torrent"))
-
+        self.actionStop_Torrent.setText(_translate("MainWindow", "Stop Torrent (Does not delete files)"))
 
 if __name__ == "__main__":
     import sys
