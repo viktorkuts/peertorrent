@@ -6,13 +6,13 @@ you will not be able to run this unfortunatly, libtorrent installs perfectly on 
 you will have to use a virtual machine, preferably ubuntu or debian based, to install python3-libtorrent and libtorrent-rasterbar
 
 # how to use on linux
-This example is for distros that use the aptitude package manager
+This example is for distros that use the aptitude package manager  
 
-Step 1, get packages: ``sudo apt update && sudo apt install git python3 pip libtorrent21``
-Step 2, clone repo and enter directory ``git clone https://github.com/volkingqc/peertorrent.git && cd peertorrent``
-Step 4, install required python modules ``pip install -r requirements``
-Step 5, run the program ``python3 main.py``
-Step 6, enjoy
+Step 1, get packages: ``sudo apt update && sudo apt install git python3 pip libtorrent21``  
+Step 2, clone repo and enter directory ``git clone https://github.com/volkingqc/peertorrent.git && cd peertorrent``  
+Step 4, install required python modules ``pip install -r requirements``  
+Step 5, run the program ``python3 main.py``  
+Step 6, enjoy  
 
 # Dependencies used in the software:
 Qt5 (for python) - Licensed under  LGPLv3  
