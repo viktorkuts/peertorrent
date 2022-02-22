@@ -15,7 +15,7 @@ Step 5, run the program ``python3 main.py``
 Step 6, enjoy
 
 # Dependencies used in the software:
-Qt5 (for python) - Licensed under  LGPLv3
+Qt5 (for python) - Licensed under  LGPLv3  
 libtorrent (Rasterbar) - Licensed under BSD-2 Clause  
 
 **I was kind of in a rush and have not really read all about licensing if using libraries, thus I included them in this list. This software is licensed using GPLv3 and if you spot that I need to include the license for another program because I am using such license, please open an issue and I will try to resolve it ASAP. Thank you.*
