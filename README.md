@@ -1,3 +1,4 @@
+https://github.com/volkingqc/peertorrent
 # peertorrent
 A bad (no really, it's like a torrent client but really bad) torrent client for a school project of mine
 
